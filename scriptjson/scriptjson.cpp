@@ -215,22 +215,54 @@ bool CScriptJson::Get(const jsonKey_t &key, CScriptArray &value) const
 
 bool CScriptJson::GetBool()
 {
-    return *js_info;
+    try
+    {
+        return *js_info;
+    }
+    catch (json::exception e)
+    {
+        asIScriptContext* ctx = asGetActiveContext(); if (ctx) ctx->SetException(e.what());
+    }
+    return false;
 }
 
 int CScriptJson::GetNumber()
 {
-    return *js_info;
+    try
+    {
+        return *js_info;
+    }
+    catch (json::exception e)
+    {
+        asIScriptContext* ctx = asGetActiveContext(); if (ctx) ctx->SetException(e.what());
+    }
+    return 0;
 }
 
 double CScriptJson::GetReal()
 {
-    return *js_info;
+    try
+    {
+        return *js_info;
+    }
+    catch (json::exception e)
+    {
+        asIScriptContext* ctx = asGetActiveContext(); if (ctx) ctx->SetException(e.what());
+    }
+    return 0;
 }
 
 std::string CScriptJson::GetString()
 {
-    return *js_info;
+    try
+    {
+        return *js_info;
+    }
+    catch (json::exception e)
+    {
+        asIScriptContext* ctx = asGetActiveContext(); if (ctx) ctx->SetException(e.what());
+    }
+    return "";
 }
 
 CScriptArray* CScriptJson::GetArray()
@@ -249,6 +281,7 @@ CScriptArray* CScriptJson::GetArray()
 CScriptJson *CScriptJson::operator[](const jsonKey_t &key)
 {
     CScriptJson* retVal = Create(engine);
+    delete retVal->js_info;
     retVal->js_info = &(*js_info)[key];
     // Return the existing value if it exists, else insert an empty value
     return retVal;
@@ -353,7 +386,7 @@ void ScriptJsonRelease_Generic(asIScriptGeneric *gen)
 void ScriptJsonAssignBool_Generic(asIScriptGeneric *gen)
 {
 	CScriptJson *json = (CScriptJson*)gen->GetObject();
-	*json = (bool)gen->GetArgByte(0);
+	*json = (bool)(gen->GetArgByte(0)!=0);
     *(CScriptJson**)gen->GetAddressOfReturnLocation() = json;
 }
 
@@ -535,7 +568,7 @@ static CScriptJson* JsonParseFile(const std::string& file)
         if (engine)
         {
             CScriptJson* newNode = CScriptJson::Create(engine);
-            *(newNode->js_info) = json::parse(inputFile);
+            *(newNode->js_info) = json::parse(inputFile, NULL, false);
             return newNode;
         }
     }
@@ -551,7 +584,7 @@ static CScriptJson* JsonParse(const std::string& str)
         if (engine)
         {
             CScriptJson* newNode = CScriptJson::Create(engine);
-            *(newNode->js_info) = json::parse(str.c_str());
+            *(newNode->js_info) = json::parse(str.c_str(),NULL,false);
             return newNode;
         }
     }
